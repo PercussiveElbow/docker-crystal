@@ -1,0 +1,5 @@
+require "./spec_helper"
+require "./containers/*"
+require "./images/*"
+require "./networks/*"
+require "./volumes/*"

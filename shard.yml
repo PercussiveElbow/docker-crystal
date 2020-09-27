@@ -1,0 +1,20 @@
+name: docker
+version: 0.0.1
+
+authors:
+  - MiloSec
+
+description: |
+  Unofficial Docker SDK
+
+# dependencies:
+#   pg:
+#     github: will/crystal-pg
+#     version: "~> 0.5"
+
+development_dependencies:
+    webmock:
+      github: manastech/webmock.cr
+      branch: master
+
+license: MIT

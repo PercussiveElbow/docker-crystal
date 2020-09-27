@@ -1,0 +1,19 @@
+name: Main
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: crystallang/crystal
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install dependencies
+      run: shards install
+    - name: Build
+      run: crystal build -Dpreview_mt --error-trace --release src/docker.cr
+      id: build
+    - name: Run tests
+      run: crystal run spec/docker_spec.cr
+      id: test
