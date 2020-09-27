@@ -13,6 +13,18 @@ module Docker
             return Array(ImageList).from_json(response.body)
         end
 
+        def inspect_image(image_id : String)
+            response = HTTP::Client.get("#{@url}/images/#{image_id}/json")
+            response_check(response)
+            return ImageInspect.from_json(response.body)
+        end
+
+        def image_history(image_id : String)
+            response = HTTP::Client.get("#{@url}/images/#{image_id}/history")
+            response_check(response)
+            return Array(ImageHistory).from_json(response.body)
+        end
+
         def list_containers(all : Bool = false,size : Bool = false) # need to add filters and limit
             response = HTTP::Client.get("#{@url}/containers/json?all=#{all}&size=#{size}")
             response_check(response)
