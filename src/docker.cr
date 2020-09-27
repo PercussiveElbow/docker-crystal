@@ -28,7 +28,13 @@ module Docker
         def list_containers(all : Bool = false,size : Bool = false) # need to add filters and limit
             response = HTTP::Client.get("#{@url}/containers/json?all=#{all}&size=#{size}")
             response_check(response)
-            return  Array(ContainerList).from_json(response.body)
+            return Array(ContainerList).from_json(response.body)
+        end
+
+        def inspect_container(container_id : String)
+            response = HTTP::Client.get("#{@url}/containers/#{container_id}/json")
+            response_check(response)
+            return ContainerInspect.from_json(response.body)
         end
 
         def list_networks() # need to add filters
