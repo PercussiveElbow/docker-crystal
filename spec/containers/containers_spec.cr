@@ -1,6 +1,20 @@
 describe "Containers endpoint" do
     client = Docker::Client.new("http://127.0.0.1:2375")
 
+    describe "Create Container endpoint" do 
+        container_create_response = File.read("spec/resources/containers/container_create.json")
+        WebMock.stub(:post, "http://127.0.0.1:2375/containers/create").to_return(status: 200, body: container_create_response)
+        it "should parse create containers endpoint correctly" do 
+            client.create_container("nginx")
+        end
+    end
+
+    describe "Start Containre endpoint" do 
+        WebMock.stub(:post, "http://127.0.0.1:2375/containers/123/start").with(body: "{}", headers: {"Content-Type" => "application/json"}).to_return(body: "")
+        it "should parse create containers endpoint correctly" do 
+            client.start_container("123")
+        end
+    end
 
     describe "List Containers endpoint" do
         containers_list_response = File.read("spec/resources/containers/list_containers.json")
@@ -26,7 +40,7 @@ describe "Containers endpoint" do
         end
     end
 
-    describe "Container processes  endpoint" do
+    describe "Container processes endpoint" do
         container_processes_response = File.read("spec/resources/containers/list_container_processes.json")
         WebMock.stub(:get, "http://127.0.0.1:2375/containers/123/top").to_return(status: 200, body: container_processes_response)
         it "should parse container processes endpoint correctly" do 

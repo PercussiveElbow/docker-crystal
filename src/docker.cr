@@ -1,6 +1,6 @@
 require "http/client"
 require "json"
-require "./api/api.cr"
+require "./api_schema/api.cr"
 
 module Docker 
     class Client
@@ -31,6 +31,22 @@ module Docker
         ##############
         # Containers #
         ##############
+        def create_container(image_name : String, **args)
+            body_params = Hash(String,String).new
+            body_params["Image"] = image_name
+            merged_params = body_params.merge(args.to_h)
+            response = HTTP::Client.post("#{@url}/containers/create", headers: HTTP::Headers{"Content-Type" => "application/json"}, body: merged_params.to_json)
+            response_check(response)
+            parsed = ContainerCreate.from_json(response.body)
+            return parsed.id
+        end
+
+        def start_container(container_id : String, **args)
+            response = HTTP::Client.post("#{@url}/containers/#{container_id}/start", headers: HTTP::Headers{"Content-Type" => "application/json"}, body: args.to_json)
+            response_check(response)
+            return response.body
+        end
+        
         def list_containers(all : Bool = false,size : Bool = false) # need to add filters and limit
             response = HTTP::Client.get("#{@url}/containers/json?all=#{all}&size=#{size}")
             response_check(response)
@@ -88,14 +104,39 @@ module Docker
         ############
         #   Exec   #
         ############
+        def create_exec(container_id : String = "", **args)
+            raise Exception.new("No Exec ID supplied") unless container_id.size() > 0
+            response = HTTP::Client.post("#{@url}/containers/#{container_id}/exec",headers: HTTP::Headers{"Content-Type" => "application/json"}, body: args.to_json)
+            response_check(response)
+            parsed = Hash(String,String).from_json(response.body)
+            return parsed["Id"]
+        end
+
+        def start_exec(exec_id : String = "", detach : Bool = false, tty : Bool = false)
+            if exec_id.size() == 0 
+                raise Exception.new("No Exec ID supplied")
+            end
+            body_params = Hash(String,Bool).new
+            body_params["Detach"] = detach
+            body_params["Tty"] = tty
+            response = HTTP::Client.post("#{@url}/exec/#{exec_id}/start", headers: HTTP::Headers{"Content-Type" => "application/json"}, body: body_params.to_json)
+            response_check(response)
+            return response.body
+        end
+
         def inspect_exec(exec_id : String)
             response = HTTP::Client.get("#{@url}/exec/#{exec_id}/json")
             response_check(response)
             return ExecInspect.from_json(response.body)
         end
 
+        def resize_exec(exec_id : String, h : Int64, w : Int64)
+            # stub 
+        end
+
+
         private def response_check(response)
-            if response.status_code != 200 
+            if response.status_code != 200 && response.status_code != 201 && response.status_code != 204
                 if response.status_code == 400 
                     raise DockerApiException.new("Bad parameter.")
                 elsif response.status_code == 500

@@ -344,4 +344,11 @@ module Docker
         property processes : Array(Array(String))
     end
 
+    struct ContainerCreate include JSON::Serializable
+        @[JSON::Field(key: "Id")]
+        property id : String
+        @[JSON::Field(key: "Warnings")]
+        property warnings : Array(String)
+    end
+
 end
