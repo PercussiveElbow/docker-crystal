@@ -16,6 +16,13 @@ module Docker
             return Array(ImageList).from_json(response.body)
         end
 
+        def pull_image(image_name : String, **args)
+            # stub
+            response = HTTP::Client.post("#{@url}/images/create?fromImage=#{image_name}")
+            response_check(response)
+            return response.body
+        end
+
         def inspect_image(image_id : String)
             response = HTTP::Client.get("#{@url}/images/#{image_id}/json")
             response_check(response)
@@ -37,6 +44,7 @@ module Docker
             merged_params = body_params.merge(args.to_h)
             response = HTTP::Client.post("#{@url}/containers/create", headers: HTTP::Headers{"Content-Type" => "application/json"}, body: merged_params.to_json)
             response_check(response)
+            puts(response.body)
             parsed = ContainerCreate.from_json(response.body)
             return parsed.id
         end
@@ -137,12 +145,15 @@ module Docker
 
         private def response_check(response)
             if response.status_code != 200 && response.status_code != 201 && response.status_code != 204
-                if response.status_code == 400 
-                    raise DockerApiException.new("Bad parameter.")
-                elsif response.status_code == 500
-                    raise DockerApiException.new("Server error.")
+                if response.status_code == 400 || response.status_code == 404 || response.status_code == 409 || response.status_code == 500 
+                    error = DockerError.from_json(response.body)
+                    raise DockerApiException.new(error.message)
                 end
             end
+        end
+
+        struct DockerError include JSON::Serializable 
+            property message : String
         end
 
     end
