@@ -7,6 +7,9 @@ module Docker
         def initialize(@url : String) # move to unix socket support
         end
 
+        ##########
+        # Images #
+        ##########
         def list_images(all : Bool = false,digest : Bool = false) # need to add filters
             response = HTTP::Client.get("#{@url}/images/json?all=#{all}&digest=#{digest}")
             response_check(response)
@@ -25,6 +28,9 @@ module Docker
             return Array(ImageHistory).from_json(response.body)
         end
 
+        ##############
+        # Containers #
+        ##############
         def list_containers(all : Bool = false,size : Bool = false) # need to add filters and limit
             response = HTTP::Client.get("#{@url}/containers/json?all=#{all}&size=#{size}")
             response_check(response)
@@ -37,23 +43,56 @@ module Docker
             return ContainerInspect.from_json(response.body)
         end
 
+        def container_filesystem_changes(container_id : String)
+            response = HTTP::Client.get("#{@url}/containers/#{container_id}/changes")
+            response_check(response)
+            return Array(ContainerFilesystemChange).from_json(response.body)
+        end
+
+        def container_processes(container_id : String)
+            response = HTTP::Client.get("#{@url}/containers/#{container_id}/top")
+            response_check(response)
+            return ContainerProcesses.from_json(response.body)
+        end
+
+        ############
+        # Networks #
+        ############
         def list_networks() # need to add filters
             response = HTTP::Client.get("#{@url}/networks")
             response_check(response)
-            return  Array(NetworkList).from_json(response.body)
+            return  Array(Network).from_json(response.body)
         end
 
+        def inspect_network(network_id : String)
+            response = HTTP::Client.get("#{@url}/networks/#{network_id}")
+            response_check(response)
+            return Network.from_json(response.body)
+        end
+
+        ############
+        #  Volumes #
+        ############
         def list_volumes()
             response = HTTP::Client.get("#{@url}/volumes")
             response_check(response)
             return VolumeList.from_json(response.body)
         end
 
-        # def listSecrets()
-        #     response = HTTP::Client.get("#{@url}/secrets")
-        #     response_check(response)
-        #     return SecretList.from_json(response.body)
-        # end
+        def inspect_volume(volume_id : String)
+            response = HTTP::Client.get("#{@url}/volumes/#{volume_id}")
+            response_check(response)
+            return VolumeInspect.from_json(response.body)
+        end
+
+        ############
+        #   Exec   #
+        ############
+        def inspect_exec(exec_id : String)
+            response = HTTP::Client.get("#{@url}/exec/#{exec_id}/json")
+            response_check(response)
+            return ExecInspect.from_json(response.body)
+        end
 
         private def response_check(response)
             if response.status_code != 200 

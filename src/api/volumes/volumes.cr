@@ -32,4 +32,21 @@ module Docker
         property type : String
     end
 
+
+    struct VolumeInspect include JSON::Serializable
+        @[JSON::Field(key: "Name")]
+        property name : String
+        @[JSON::Field(key: "Driver")]
+        property driver : String
+        @[JSON::Field(key: "Mountpoint")]
+        property mountpoint : String
+        @[JSON::Field(key: "Status")]
+        property status : Hash(String,String)
+        @[JSON::Field(key: "Labels")]
+        property labels : Hash(String,String)
+        @[JSON::Field(key: "Scope")]
+        property scope : String
+        @[JSON::Field(key: "CreatedAt")]
+        property createdAt : String
+    end
 end

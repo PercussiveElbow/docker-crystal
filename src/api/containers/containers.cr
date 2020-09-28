@@ -330,4 +330,18 @@ module Docker
         property output : String
     end
 
+    struct ContainerFilesystemChange include JSON::Serializable
+        @[JSON::Field(key: "Path")]
+        property path : String
+        @[JSON::Field(key: "Kind")]
+        property kind : Int64
+    end
+
+    struct ContainerProcesses include JSON::Serializable
+        @[JSON::Field(key: "Titles")]
+        property titles : Array(String)
+        @[JSON::Field(key: "Processes")]
+        property processes : Array(Array(String))
+    end
+
 end

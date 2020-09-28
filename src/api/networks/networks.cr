@@ -1,5 +1,5 @@
 module Docker
-    struct NetworkList include JSON::Serializable
+    struct Network include JSON::Serializable
         @[JSON::Field(key: "Name")]
         property name : String
         @[JSON::Field(key: "Id")]
@@ -22,6 +22,8 @@ module Docker
         property attachable : NetworkListIPAM
         @[JSON::Field(key: "Options")]
         property options : Hash(String,String)
+        @[JSON::Field(key: "Containers")]
+        property containers : Hash(String,NetworkContainer)?
     end
 
     struct NetworkListIPAM include JSON::Serializable
@@ -35,4 +37,16 @@ module Docker
         property subnet : String
     end
 
+    struct NetworkContainer include JSON::Serializable
+        @[JSON::Field(key: "Name")]
+        property name : String
+        @[JSON::Field(key: "EndpointID")]
+        property endpointID : String
+        @[JSON::Field(key: "MacAddress")]
+        property macAddress : String
+        @[JSON::Field(key: "IPv4Address")]
+        property ipv4Address : String
+        @[JSON::Field(key: "IPv6Address")]
+        property ipv6address : String
+    end
 end

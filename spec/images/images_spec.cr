@@ -28,6 +28,5 @@ describe "Images endpoint" do
             client = Docker::Client.new("http://127.0.0.1:2375")
             client.image_history("123")
         end
-        
     end
 end
