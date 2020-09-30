@@ -68,7 +68,6 @@ module Docker
         
         def list_containers(all : Bool = false,size : Bool = false) # need to add filters and limit
             response = @client.get("/containers/json?all=#{all}&size=#{size}")
-            puts(response.body)
             response_check(response,@client)
             return Array(ContainerList).from_json(response.body)
         end
