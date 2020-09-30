@@ -6,13 +6,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: crystallang/crystal
+      image: crystallang/crystal:nightly-alpine-build
     steps:
     - uses: actions/checkout@v1
     - name: Install dependencies
       run: shards install
     - name: Build
-      run: crystal build -Dpreview_mt --error-trace --release src/docker.cr
+      run: crystal build --static --error-trace --release src/docker.cr
       id: build
     - name: Run tests
       run: crystal run spec/docker_spec.cr

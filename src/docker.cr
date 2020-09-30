@@ -4,33 +4,40 @@ require "./api_schema/api.cr"
 
 module Docker 
     class Client
-        def initialize(@url : String) # move to unix socket support
+        def initialize(url : String)
+            if url.includes?("http://") || url.includes?("https://")
+                uri = URI.parse(url)
+                @client = HTTP::Client.new(uri)
+            else
+                sock = UNIXSocket.new(url)
+                @client = HTTP::Client.new(sock) 
+            end
         end
 
         ##########
         # Images #
         ##########
         def list_images(all : Bool = false,digest : Bool = false) # need to add filters
-            response = HTTP::Client.get("#{@url}/images/json?all=#{all}&digest=#{digest}")
+            response = @client.get("/images/json?all=#{all}&digest=#{digest}")
             response_check(response)
             return Array(ImageList).from_json(response.body)
         end
 
         def pull_image(image_name : String, **args)
             # stub
-            response = HTTP::Client.post("#{@url}/images/create?fromImage=#{image_name}")
+            response = @client.post("/images/create?fromImage=#{image_name}")
             response_check(response)
             return response.body
         end
 
         def inspect_image(image_id : String)
-            response = HTTP::Client.get("#{@url}/images/#{image_id}/json")
+            response = @client.get("/images/#{image_id}/json")
             response_check(response)
             return ImageInspect.from_json(response.body)
         end
 
         def image_history(image_id : String)
-            response = HTTP::Client.get("#{@url}/images/#{image_id}/history")
+            response = @client.get("/images/#{image_id}/history")
             response_check(response)
             return Array(ImageHistory).from_json(response.body)
         end
@@ -42,7 +49,7 @@ module Docker
             body_params = Hash(String,String).new
             body_params["Image"] = image_name
             merged_params = body_params.merge(args.to_h)
-            response = HTTP::Client.post("#{@url}/containers/create", headers: HTTP::Headers{"Content-Type" => "application/json"}, body: merged_params.to_json)
+            response = @client.post("/containers/create", headers: HTTP::Headers{"Content-Type" => "application/json"}, body: merged_params.to_json)
             response_check(response)
             puts(response.body)
             parsed = ContainerCreate.from_json(response.body)
@@ -50,31 +57,31 @@ module Docker
         end
 
         def start_container(container_id : String, **args)
-            response = HTTP::Client.post("#{@url}/containers/#{container_id}/start", headers: HTTP::Headers{"Content-Type" => "application/json"}, body: args.to_json)
+            response = @client.post("/containers/#{container_id}/start", headers: HTTP::Headers{"Content-Type" => "application/json"}, body: args.to_json)
             response_check(response)
             return response.body
         end
         
         def list_containers(all : Bool = false,size : Bool = false) # need to add filters and limit
-            response = HTTP::Client.get("#{@url}/containers/json?all=#{all}&size=#{size}")
+            response = @client.get("/containers/json?all=#{all}&size=#{size}")
             response_check(response)
             return Array(ContainerList).from_json(response.body)
         end
 
         def inspect_container(container_id : String)
-            response = HTTP::Client.get("#{@url}/containers/#{container_id}/json")
+            response = @client.get("/containers/#{container_id}/json")
             response_check(response)
             return ContainerInspect.from_json(response.body)
         end
 
         def container_filesystem_changes(container_id : String)
-            response = HTTP::Client.get("#{@url}/containers/#{container_id}/changes")
+            response = @client.get("/containers/#{container_id}/changes")
             response_check(response)
             return Array(ContainerFilesystemChange).from_json(response.body)
         end
 
         def container_processes(container_id : String)
-            response = HTTP::Client.get("#{@url}/containers/#{container_id}/top")
+            response = @client.get("/containers/#{container_id}/top")
             response_check(response)
             return ContainerProcesses.from_json(response.body)
         end
@@ -83,13 +90,13 @@ module Docker
         # Networks #
         ############
         def list_networks() # need to add filters
-            response = HTTP::Client.get("#{@url}/networks")
+            response = @client.get("/networks")
             response_check(response)
             return  Array(Network).from_json(response.body)
         end
 
         def inspect_network(network_id : String)
-            response = HTTP::Client.get("#{@url}/networks/#{network_id}")
+            response = @client.get("/networks/#{network_id}")
             response_check(response)
             return Network.from_json(response.body)
         end
@@ -98,13 +105,13 @@ module Docker
         #  Volumes #
         ############
         def list_volumes()
-            response = HTTP::Client.get("#{@url}/volumes")
+            response = @client.get("/volumes")
             response_check(response)
             return VolumeList.from_json(response.body)
         end
 
         def inspect_volume(volume_id : String)
-            response = HTTP::Client.get("#{@url}/volumes/#{volume_id}")
+            response = @client.get("/volumes/#{volume_id}")
             response_check(response)
             return VolumeInspect.from_json(response.body)
         end
@@ -114,7 +121,7 @@ module Docker
         ############
         def create_exec(container_id : String = "", **args)
             raise Exception.new("No Exec ID supplied") unless container_id.size() > 0
-            response = HTTP::Client.post("#{@url}/containers/#{container_id}/exec",headers: HTTP::Headers{"Content-Type" => "application/json"}, body: args.to_json)
+            response = @client.post("/containers/#{container_id}/exec",headers: HTTP::Headers{"Content-Type" => "application/json"}, body: args.to_json)
             response_check(response)
             parsed = Hash(String,String).from_json(response.body)
             return parsed["Id"]
@@ -127,13 +134,13 @@ module Docker
             body_params = Hash(String,Bool).new
             body_params["Detach"] = detach
             body_params["Tty"] = tty
-            response = HTTP::Client.post("#{@url}/exec/#{exec_id}/start", headers: HTTP::Headers{"Content-Type" => "application/json"}, body: body_params.to_json)
+            response = @client.post("/exec/#{exec_id}/start", headers: HTTP::Headers{"Content-Type" => "application/json"}, body: body_params.to_json)
             response_check(response)
             return response.body
         end
 
         def inspect_exec(exec_id : String)
-            response = HTTP::Client.get("#{@url}/exec/#{exec_id}/json")
+            response = @client.get("/exec/#{exec_id}/json")
             response_check(response)
             return ExecInspect.from_json(response.body)
         end
