@@ -4,12 +4,17 @@ require "./api_schema/api.cr"
 
 module Docker 
     class Client
-        def initialize(url : String)
-            if url.includes?("http://") || url.includes?("https://")
-                uri = URI.parse(url)
+        def initialize(socket_path : String = "", port : Int32 = 0)
+            raise DockerClientException.new("No socket path supplied") unless socket_path.size()>0
+            if socket_path.includes?("http://") || socket_path.includes?("https://")
+                if port == 0
+                    raise DockerClientException.new("No port supplied.")
+                end
+                uri = URI.parse(socket_path)
+                uri.port=port
                 @client = HTTP::Client.new(uri)
             else
-                sock = UNIXSocket.new(url)
+                sock = UNIXSocket.new(socket_path)
                 @client = HTTP::Client.new(sock) 
             end
         end
@@ -171,5 +176,7 @@ module Docker
     end
 
     class DockerApiException < Exception
+    end
+    class DockerClientException < Exception
     end
 end
