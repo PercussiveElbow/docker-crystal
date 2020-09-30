@@ -12,7 +12,7 @@ jobs:
     - name: Install dependencies
       run: shards install
     - name: Build
-      run: crystal build --static --error-trace --release src/docker.cr
+      run: crystal build --static ---ignore-crystal-version --error-trace --release src/docker.cr
       id: build
     - name: Run tests
       run: crystal run spec/docker_spec.cr
