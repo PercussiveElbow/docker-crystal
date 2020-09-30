@@ -86,6 +86,11 @@ module Docker
             return ContainerProcesses.from_json(response.body)
         end
 
+        def delete_container(container_id : String)
+            response = @client.delete("/containers/#{container_id}?v=1&force=1")
+            response_check(response)
+        end
+
         ############
         # Networks #
         ############
