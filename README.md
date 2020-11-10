@@ -1,6 +1,6 @@
 # Docker Crystal Library#
 
-WIP 
+WIP - this is very much unfinished and is compiled against Crystal nightly due to some additions to stdlib. This won't work with Crystal stable.
 
 # Installation
 Add the SDK as a dependency within your shards.yml:
