@@ -347,8 +347,8 @@ module Docker
     struct ContainerCreate include JSON::Serializable
         @[JSON::Field(key: "Id")]
         property id : String
-        @[JSON::Field(key: "Warnings")]
-        property warnings : Array(String)
+        # @[JSON::Field(key: "Warnings")]
+        # property warnings : Array(String)
     end
 
 end
