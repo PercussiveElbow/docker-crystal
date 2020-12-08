@@ -1,10 +1,13 @@
 require "http/client"
+require "openssl"
 require "json"
 require "./api_schema/api.cr"
 
 module Docker 
     class Client
-        def initialize(socket_path : String = "", port : Int32 = 0)
+
+        def initialize(socket_path : String = "", port : Int32 = 0, verify_tls : Bool = true)
+
             raise DockerClientException.new("No socket path supplied") unless socket_path.size()>0
             if socket_path.includes?("http://") || socket_path.includes?("https://")
                 if port == 0
@@ -12,7 +15,11 @@ module Docker
                 end
                 uri = URI.parse(socket_path)
                 uri.port=port
-                @client = HTTP::Client.new(uri)
+                if !verify_tls # Obviously only enable this if you know what this option entails.
+                    @client = HTTP::Client.new(uri: uri, tls: OpenSSL::SSL::Context::Client.insecure)
+                else
+                    @client = HTTP::Client.new(uri)
+                end
                 @io = false
             else
                 sock = UNIXSocket.new(socket_path)
